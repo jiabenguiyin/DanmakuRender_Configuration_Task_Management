@@ -37,6 +37,12 @@ python app.py
 ```shell
 127.0.0.1:5000
 ```
+7. 恢复备份数据库
+如果出现数据库丢失的情况下，可以通过这个指令进行恢复备份数据
+```shell
+cp ConfigSchedulerWeb.db.backup.20231020153045 ConfigSchedulerWeb.db
+```
+重新启动
 
 ## 更多
 感谢 SmallPeaches/DanmakuRender 的工作付出。            
