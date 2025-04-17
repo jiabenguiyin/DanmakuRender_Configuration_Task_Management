@@ -6,8 +6,8 @@
     
 初衷是DanmakuRender5管理配置文件太麻烦，所以我为了方便自己使用，写了这个小工具，配合DanmakuRender5使用。效果很棒！
 
-### 安装与使用文档      
-## Windows安装 
+### 安装与使用说明      
+## Windows安装（linux安装懒得写） 
 
 1. 安装Python            
 [点击这里下载Python 3.9安装包](https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe)，需要下载其他版本的可以前往[官网](https://www.python.org/downloads/)自行下载。下载完成后点击安装，安装时注意选择`Add Python xxx to PATH`这个选项，其他默认就可以。  （不过一般安装了DanmakuRender5应该不需要安装）   
