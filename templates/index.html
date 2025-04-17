@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>直播配置任务管理</title>
+    <title>直播配置任务管理系统</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         :root {
             --bg-color: #ffffff;
@@ -98,12 +97,13 @@
 <body>
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>📋 配置任务管理界面</h2>
+            <h2>📋 直播配置任务管理</h2>
             <button class="btn btn-sm btn-outline-secondary theme-toggle" id="themeToggle">
                 <i class="bi bi-moon-stars"></i>
             </button>
         </div>
 
+        <!-- 添加任务表单 -->
         <form method="POST" action="/add" class="row g-3 mb-4 p-3 form-container">
             <div class="col-md-3">
                 <select name="filename" class="form-select" required>
@@ -134,6 +134,7 @@
             </div>
         </form>
 
+        <!-- 任务表格 -->
         <table class="table table-bordered table-hover shadow-sm">
             <thead>
                 <tr>
@@ -172,7 +173,9 @@
                         </a>
                         <a href="/delete/{{ task.filename }}" 
                            class="btn btn-sm btn-danger"
-                           onclick="return confirm('⚠️ 确定要永久删除【{{ task.filename }}】吗？\n此操作不可撤销！')">
+                           onclick="return confirm('⚠️ 确定要永久删除该配置吗？\\n\\n配置文件: {{ task.filename }}')"
+                           data-bs-toggle="tooltip" 
+                           title="删除后需重新配置">
                            删除
                         </a>
                     </td>
@@ -180,82 +183,83 @@
                 {% endfor %}
             </tbody>
         </table>
-    </div>
 
-    <!-- 编辑模态框 -->
-    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">编辑任务</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <form method="POST" id="editForm">
-                    <div class="modal-body">
-                        <input type="hidden" name="filename" id="editFilename">
-                        <div class="mb-3">
-                            <label class="form-label">开始日期</label>
-                            <input type="date" name="start" class="form-control" id="editStart" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">结束日期</label>
-                            <input type="date" name="end" class="form-control" id="editEnd" required>
-                        </div>
+        <!-- 编辑模态框 -->
+        <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">编辑任务</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
-                        <button type="submit" class="btn btn-primary">保存更改</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- 模板模态框 -->
-    <div class="modal fade" id="templateModal" tabindex="-1" aria-labelledby="templateModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">新建直播间模板</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <form method="POST" action="/create_template">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">主播名称</label>
-                            <input type="text" name="taskname" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">直播间URL</label>
-                            <input type="url" name="url" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">标签管理</label>
-                            <input type="text" class="form-control" id="tagInput" 
-                                   placeholder="输入标签后按回车">
-                            <input type="hidden" name="tags" id="tagsInput" value="直播录像">
-                            <div id="tagsContainer" class="mt-2">
-                                <div class="badge">
-                                    直播录像 <span class="text-danger" onclick="removeTag(this)" style="cursor: pointer;">×</span>
-                                </div>
+                    <form method="POST" id="editForm">
+                        <div class="modal-body">
+                            <input type="hidden" name="filename" id="editFilename">
+                            <div class="mb-3">
+                                <label class="form-label">开始日期</label>
+                                <input type="date" name="start" class="form-control" id="editStart" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">结束日期</label>
+                                <input type="date" name="end" class="form-control" id="editEnd" required>
                             </div>
                         </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" name="is_repost" class="form-check-input">
-                            <label class="form-check-label">转载内容</label>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                            <button type="submit" class="btn btn-primary">保存更改</button>
                         </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 模板模态框 -->
+        <div class="modal fade" id="templateModal" tabindex="-1" aria-labelledby="templateModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">新建直播间模板</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
-                        <button type="submit" class="btn btn-primary">保存模板</button>
-                    </div>
-                </form>
+                    <form method="POST" action="/create_template">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">主播名称</label>
+                                <input type="text" name="taskname" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">直播间URL</label>
+                                <input type="url" name="url" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">标签管理</label>
+                                <input type="text" class="form-control" id="tagInput" 
+                                       placeholder="输入标签后按回车">
+                                <input type="hidden" name="tags" id="tagsInput" value="直播录像">
+                                <div id="tagsContainer" class="mt-2">
+                                    <div class="badge">
+                                        直播录像 <span class="text-danger" onclick="removeTag(this)" style="cursor: pointer;">×</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" name="is_repost" class="form-check-input">
+                                <label class="form-check-label">转载内容</label>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                            <button type="submit" class="btn btn-primary">保存模板</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // 主题管理
+        // 主题切换
         const themeToggle = document.getElementById('themeToggle');
         let currentTheme = localStorage.getItem('theme') || 'auto';
 
@@ -265,10 +269,6 @@
             
             document.documentElement.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
             localStorage.setItem('theme', theme);
-            updateToggleIcon(isDark);
-        }
-
-        function updateToggleIcon(isDark) {
             themeToggle.innerHTML = isDark 
                 ? '<i class="bi bi-sun"></i>' 
                 : '<i class="bi bi-moon-stars"></i>';
@@ -280,12 +280,7 @@
             applyTheme(currentTheme);
         });
 
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            if (currentTheme === 'auto') {
-                applyTheme('auto');
-            }
-        });
-
+        // 初始化主题
         applyTheme(currentTheme);
 
         // 编辑模态框
@@ -326,6 +321,23 @@
             el.parentElement.remove();
             updateTags();
         };
+
+        // 表单提交检查
+        document.querySelector('form[action="/add"]').addEventListener('submit', function(e) {
+            const filename = this.querySelector('[name="filename"]').value + '.yml';
+            const exists = Array.from(document.querySelectorAll('td:first-child'))
+                .some(td => td.textContent === filename);
+            
+            if (exists) {
+                e.preventDefault();
+                alert('⚠️ 该配置已存在，请先删除旧配置！');
+            }
+        });
+
+        // 初始化工具提示
+        new bootstrap.Tooltip(document.body, {
+            selector: '[data-bs-toggle="tooltip"]'
+        })
     </script>
 </body>
 </html>
