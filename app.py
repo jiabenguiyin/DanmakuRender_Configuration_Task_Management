@@ -10,18 +10,23 @@ CONFIG_DIR = "configs"
 DISABLED_DIR = "disabled_configs"
 DB_PATH = "ConfigSchedulerWeb.db"
 
-# 初始化数据库
 def init_db():
     conn = sqlite3.connect(DB_PATH)
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS tasks (
-            filename TEXT PRIMARY KEY,
-            start_date DATE NOT NULL,
-            end_date DATE NOT NULL
-        )
-    ''')
-    conn.commit()
-    conn.close()
+    try:
+        conn.execute('DROP TABLE IF EXISTS tasks')
+        conn.execute('''
+            CREATE TABLE tasks (
+                filename TEXT PRIMARY KEY,
+                start_date DATE NOT NULL,
+                end_date DATE NOT NULL
+            )
+        ''')
+        print("数据库表已创建")
+    except Exception as e:
+        print(f"数据库初始化错误: {str(e)}")
+    finally:
+        conn.commit()
+        conn.close()
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
@@ -39,15 +44,23 @@ def get_yml_files():
 
 def add_task_to_db(filename, start, end):
     conn = get_db_connection()
-    conn.execute('INSERT OR REPLACE INTO tasks VALUES (?, ?, ?)', (filename, start, end))
-    conn.commit()
-    conn.close()
+    try:
+        conn.execute('''
+            INSERT OR REPLACE INTO tasks 
+            (filename, start_date, end_date)
+            VALUES (?, ?, ?)
+        ''', (filename, start, end))
+    finally:
+        conn.commit()
+        conn.close()
 
 def delete_task_from_db(filename):
     conn = get_db_connection()
-    conn.execute('DELETE FROM tasks WHERE filename = ?', (filename,))
-    conn.commit()
-    conn.close()
+    try:
+        conn.execute('DELETE FROM tasks WHERE filename = ?', (filename,))
+    finally:
+        conn.commit()
+        conn.close()
 
 @app.route('/')
 def index():
@@ -77,7 +90,13 @@ def add():
 
 @app.route('/delete/<filename>')
 def delete(filename):
-    delete_task_from_db(filename)
+    try:
+        delete_task_from_db(filename)
+        config_path = os.path.join(CONFIG_DIR, filename)
+        if os.path.exists(config_path):
+            os.remove(config_path)
+    except Exception as e:
+        return f"删除失败: {str(e)}", 500
     return redirect(url_for('index'))
 
 @app.route('/edit/<filename>', methods=['POST'])
@@ -86,10 +105,15 @@ def edit(filename):
     end = request.form['end']
     
     conn = get_db_connection()
-    conn.execute('UPDATE tasks SET start_date = ?, end_date = ? WHERE filename = ?',
-                (start, end, filename))
-    conn.commit()
-    conn.close()
+    try:
+        conn.execute('''
+            UPDATE tasks 
+            SET start_date = ?, end_date = ?
+            WHERE filename = ?
+        ''', (start, end, filename))
+    finally:
+        conn.commit()
+        conn.close()
     return redirect(url_for('index'))
 
 @app.route('/toggle_task/<filename>')
@@ -97,10 +121,13 @@ def toggle_task(filename):
     src = os.path.join(CONFIG_DIR, filename)
     dst = os.path.join(DISABLED_DIR, filename)
     
-    if os.path.exists(src):
-        shutil.move(src, dst)
-    else:
-        shutil.move(dst, src)
+    try:
+        if os.path.exists(src):
+            shutil.move(src, dst)
+        else:
+            shutil.move(dst, src)
+    except Exception as e:
+        return f"状态切换失败: {str(e)}", 500
     return redirect(url_for('index'))
 
 @app.route('/create_template', methods=['POST'])
@@ -111,8 +138,9 @@ def create_template():
     is_repost = 'is_repost' in request.form
     
     filename = f"DMR-{taskname}.yml"
-    with open(os.path.join(CONFIG_DIR, filename), 'w') as f:
-        f.write(f'''common_event_args:
+    try:
+        with open(os.path.join(CONFIG_DIR, filename), 'w') as f:
+            f.write(f'''common_event_args:
   auto_render: False
   auto_upload: True
   auto_transcode: False
@@ -153,9 +181,13 @@ upload_args:
     open_elec: 1
     dynamic: '{{STREAMER.NAME}} 的直播回放，{{CTIME.YEAR}}年{{CTIME.MONTH:02d}}月{{CTIME.DAY:02d}}日'
 ''')
+    except Exception as e:
+        return f"模板创建失败: {str(e)}", 500
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
+    if os.path.exists(DB_PATH):
+        os.remove(DB_PATH)
     init_db()
     os.makedirs(CONFIG_DIR, exist_ok=True)
     os.makedirs(DISABLED_DIR, exist_ok=True)
