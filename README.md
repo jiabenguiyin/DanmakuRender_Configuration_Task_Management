@@ -1,0 +1,7 @@
+DanmakuRender Configuration Task Management—— 一个批量管理DanmakuRender5配置文件的小工具
+
+可以一键配置启用禁用录制主播
+设置录制天数
+可以设置批量主播
+
+初衷是DanmakuRender5管理配置文件太麻烦，所以我为了方便自己使用，写了这个小工具，配合DanmakuRender5使用。效果很棒！
