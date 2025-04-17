@@ -104,7 +104,6 @@
             </button>
         </div>
 
-        <!-- 添加任务表单 -->
         <form method="POST" action="/add" class="row g-3 mb-4 p-3 form-container">
             <div class="col-md-3">
                 <select name="filename" class="form-select" required>
@@ -135,7 +134,6 @@
             </div>
         </form>
 
-        <!-- 任务表格 -->
         <table class="table table-bordered table-hover shadow-sm">
             <thead>
                 <tr>
@@ -173,7 +171,10 @@
                             {{ '禁用' if task.status == '启用中' else '启用' }}
                         </a>
                         <a href="/delete/{{ task.filename }}" 
-                           class="btn btn-sm btn-danger">删除</a>
+                           class="btn btn-sm btn-danger"
+                           onclick="return confirm('⚠️ 确定要永久删除【{{ task.filename }}】吗？\n此操作不可撤销！')">
+                           删除
+                        </a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -254,7 +255,7 @@
     </div>
 
     <script>
-        // 智能主题管理
+        // 主题管理
         const themeToggle = document.getElementById('themeToggle');
         let currentTheme = localStorage.getItem('theme') || 'auto';
 
@@ -279,54 +280,52 @@
             applyTheme(currentTheme);
         });
 
-        // 系统主题变化监听
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
             if (currentTheme === 'auto') {
                 applyTheme('auto');
             }
         });
 
-        // 初始化主题
         applyTheme(currentTheme);
 
-        // 编辑模态框初始化
+        // 编辑模态框
         document.getElementById('editModal').addEventListener('show.bs.modal', e => {
-            const button = e.relatedTarget
-            document.getElementById('editFilename').value = button.dataset.filename
-            document.getElementById('editStart').value = button.dataset.start
-            document.getElementById('editEnd').value = button.dataset.end
-            document.getElementById('editForm').action = `/edit/${button.dataset.filename}`
-        })
+            const button = e.relatedTarget;
+            document.getElementById('editFilename').value = button.dataset.filename;
+            document.getElementById('editStart').value = button.dataset.start;
+            document.getElementById('editEnd').value = button.dataset.end;
+            document.getElementById('editForm').action = `/edit/${button.dataset.filename}`;
+        });
 
         // 标签管理
-        const tagInput = document.getElementById('tagInput')
-        const tagsContainer = document.getElementById('tagsContainer')
+        const tagInput = document.getElementById('tagInput');
+        const tagsContainer = document.getElementById('tagsContainer');
         
         function updateTags() {
             const tags = Array.from(tagsContainer.querySelectorAll('.badge'))
-                .map(badge => badge.textContent.replace('×', '').trim())
-            document.getElementById('tagsInput').value = tags.join(',')
+                .map(badge => badge.textContent.replace('×', '').trim());
+            document.getElementById('tagsInput').value = tags.join(',');
         }
 
         tagInput.addEventListener('keypress', e => {
             if (e.key === 'Enter' && tagInput.value.trim()) {
-                e.preventDefault()
-                const newTag = document.createElement('div')
-                newTag.className = 'badge'
+                e.preventDefault();
+                const newTag = document.createElement('div');
+                newTag.className = 'badge';
                 newTag.innerHTML = `
                     ${tagInput.value.trim()}
                     <span class="text-danger" onclick="removeTag(this)" style="cursor: pointer;">×</span>
-                `
-                tagsContainer.appendChild(newTag)
-                tagInput.value = ''
-                updateTags()
+                `;
+                tagsContainer.appendChild(newTag);
+                tagInput.value = '';
+                updateTags();
             }
-        })
+        });
 
         window.removeTag = function(el) {
-            el.parentElement.remove()
-            updateTags()
-        }
+            el.parentElement.remove();
+            updateTags();
+        };
     </script>
 </body>
 </html>
