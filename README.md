@@ -6,7 +6,7 @@
     
 初衷是DanmakuRender5管理配置文件太麻烦，所以我为了方便自己使用，写了这个小工具，配合DanmakuRender5使用。效果很棒！
 
-其他新功能有需求就开发吧，新建模板目前是固定的录制无弹幕2小时后自动上传b站的。想要diy功能请查看[**danmakurender-5使用文档**](https://github.com/SmallPeaches/DanmakuRender/edit/v5/README.md) 
+其他新功能有需求就开发吧，新建模板目前是固定的录制无弹幕2小时后自动上传b站的。想要diy功能请查看[**danmakurender-5使用文档**](https://github.com/jiabenguiyin/DanmakuRender_Configuration_Task_Management/blob/main/README.md)
 
 ### 安装与使用说明      
 ## Windows安装（Linux安装懒得写） 
