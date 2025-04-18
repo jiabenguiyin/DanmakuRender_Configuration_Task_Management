@@ -1,13 +1,15 @@
-# -*- coding: utf-8 -*-
 import os
 import shutil
 import logging
 import sqlite3
+import time
+import argparse
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for
+import requests
 from logging.handlers import RotatingFileHandler
-
-app = Flask(__name__)
+from glob import glob
+from os.path import exists, splitext
 
 # ======================
 # 配置参数
@@ -15,28 +17,40 @@ app = Flask(__name__)
 CONFIG_DIR = "configs"
 DISABLED_DIR = "disabled_configs"
 DB_PATH = "ConfigSchedulerWeb.db"
+BACKUP_DIR = "backups"
+GITHUB_REPO = "https://api.github.com/repos/jiabenguiyin/DanmakuRender_Configuration_Task_Management"
+CURRENT_VERSION = "2025.04.18"  # 当前版本
 
 # ======================
 # 日志系统配置 (Python 3.9+)
 # ======================
 def setup_logging():
     """配置带滚动和UTF-8编码的日志系统"""
-    log_format = '%(asctime)s.%(msecs)03d | %(levelname)-8s | %(message)s'
+    log_format = '[%(asctime)s][%(levelname)s]: %(message)s'
     date_format = '%Y-%m-%d %H:%M:%S'
     
-    handler = RotatingFileHandler(
-        filename='operation.log',
-        maxBytes=5*1024*1024,  # 5MB
-        backupCount=3,
-        encoding='utf-8'
-    )
-    handler.setFormatter(logging.Formatter(fmt=log_format, datefmt=date_format))
+    # 控制台输出
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(logging.Formatter(log_format, datefmt=date_format))
     
-    root_logger = logging.getLogger()
-    root_logger.setLevel(logging.INFO)
-    root_logger.addHandler(handler)
-
-setup_logging()
+    # 文件输出（每天滚动）
+    os.makedirs('logs', exist_ok=True)
+    log_file = f'logs/DMR-{datetime.now().strftime("%Y%m%d")}.log'
+    if os.path.exists(log_file):
+        _cnt = len(glob(splitext(log_file)[0] + '*'))
+        log_file = splitext(log_file)[0] + f'({_cnt})' + splitext(log_file)[1]
+    file_handler = logging.handlers.TimedRotatingFileHandler(log_file, when='D', interval=1, backupCount=3, encoding='utf-8')
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(logging.Formatter(log_format, datefmt=date_format))
+    
+    # 设置logger
+    logger = logging.getLogger('DMR')
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
+    
+    return logger
 
 # ======================
 # 数据库操作（修复重启丢失问题）
@@ -45,13 +59,11 @@ def init_db():
     """安全初始化数据库（保留现有数据）"""
     conn = sqlite3.connect(DB_PATH)
     try:
-        conn.execute('''
-            CREATE TABLE IF NOT EXISTS tasks (
-                filename TEXT PRIMARY KEY,
-                start_date DATE NOT NULL,
-                end_date DATE NOT NULL
-            )
-        ''')
+        conn.execute('''CREATE TABLE IF NOT EXISTS tasks (
+            filename TEXT PRIMARY KEY,
+            start_date DATE NOT NULL,
+            end_date DATE NOT NULL
+        )''')
         logging.info("数据库初始化/验证完成")
     except Exception as e:
         logging.error(f"数据库初始化失败: {str(e)}")
@@ -95,10 +107,8 @@ def sync_db_with_files():
         # 添加缺失记录（仅添加新文件，保留原有日期设置）
         for f in os.listdir(CONFIG_DIR):
             if f.endswith('.yml') and f != 'global.yml':
-                conn.execute('''
-                    INSERT OR IGNORE INTO tasks (filename, start_date, end_date)
-                    VALUES (?, DATE('now'), DATE('now', '+7 days'))
-                ''', (f,))
+                conn.execute('''INSERT OR IGNORE INTO tasks (filename, start_date, end_date)
+                                 VALUES (?, DATE('now'), DATE('now', '+7 days'))''', (f,))
         conn.commit()
     finally:
         conn.close()
@@ -112,12 +122,7 @@ def load_schedule():
     
     conn = get_db_connection()
     try:
-        tasks = conn.execute('''
-            SELECT filename, start_date, end_date 
-            FROM tasks 
-            ORDER BY start_date DESC
-        ''').fetchall()
-        
+        tasks = conn.execute('SELECT filename, start_date, end_date FROM tasks ORDER BY start_date DESC').fetchall()
         result = []
         for task in tasks:
             status, _ = get_file_status(task['filename'])
@@ -139,38 +144,23 @@ def get_yml_files():
         if f.endswith('.yml') and f.lower() != 'global.yml'
     ]
 
-def add_task_to_db(filename, start, end):
-    """添加任务到数据库"""
-    conn = get_db_connection()
-    try:
-        conn.execute('''
-            INSERT INTO tasks (filename, start_date, end_date)
-            VALUES (?, ?, ?)
-        ''', (filename, start, end))
-        logging.info(f"添加任务成功: {filename}")
-    except sqlite3.IntegrityError as e:
-        logging.warning(f"任务已存在: {filename}")
-        raise
-    finally:
-        conn.commit()
-        conn.close()
-
-def delete_task_from_db(filename):
-    """从数据库删除任务"""
-    conn = get_db_connection()
-    try:
-        conn.execute('DELETE FROM tasks WHERE filename = ?', (filename,))
-        logging.info(f"删除任务: {filename}")
-    except Exception as e:
-        logging.error(f"删除失败: {str(e)}")
-        raise
-    finally:
-        conn.commit()
-        conn.close()
+# ======================
+# 启动功能
+# ======================
+def backup_db():
+    """启动时自动备份数据库"""
+    if os.path.exists(DB_PATH):
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        backup_path = os.path.join(BACKUP_DIR, f"{DB_PATH}.backup.{timestamp}")
+        os.makedirs(BACKUP_DIR, exist_ok=True)
+        shutil.copyfile(DB_PATH, backup_path)
+        logging.info(f"数据库已备份至: {backup_path}")
 
 # ======================
 # 路由处理
 # ======================
+app = Flask(__name__)
+
 @app.route('/')
 def index():
     """主界面"""
@@ -206,7 +196,7 @@ def add():
         return f'''
             <script>
                 if(confirm("配置 {filename} 已存在！\\n是否覆盖？")){{
-                    window.location = "/force_add/{request.form['filename']}?start={request.form['start']}&end={request.form['end']}";
+                    window.location = "/force_add/{request.form['filename']}?start={request.form['start']}&end={request.form['end']}"; 
                 }}else{{
                     window.location = "/";
                 }}
@@ -235,7 +225,7 @@ def delete(filename):
     """删除任务路由"""
     if 'global.yml' in filename.lower():
         logging.warning("尝试删除全局配置文件")
-        return "禁止操作系统配置文件", 403
+        return "禁止编辑系统配置文件", 403
     
     try:
         delete_task_from_db(filename)
@@ -285,11 +275,10 @@ def edit(filename):
     
     conn = get_db_connection()
     try:
-        conn.execute('''
-            UPDATE tasks 
-            SET start_date = ?, end_date = ?
-            WHERE filename = ?
-        ''', (start, end, filename))
+        conn.execute('''UPDATE tasks 
+                        SET start_date = ?, end_date = ? 
+                        WHERE filename = ?''', 
+                     (start, end, filename))
         logging.info(f"编辑任务: {filename}")
     except Exception as e:
         logging.error(f"编辑失败: {str(e)}")
@@ -365,20 +354,41 @@ def backup_db():
     """启动时自动备份数据库"""
     if os.path.exists(DB_PATH):
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        backup_path = f"{DB_PATH}.backup.{timestamp}"
+        backup_path = os.path.join(BACKUP_DIR, f"{DB_PATH}.backup.{timestamp}")
+        os.makedirs(BACKUP_DIR, exist_ok=True)
         shutil.copyfile(DB_PATH, backup_path)
         logging.info(f"数据库已备份至: {backup_path}")
 
 if __name__ == '__main__':
-    # 安全启动流程
-    backup_db()
+    # 解析命令行参数
+    parser = argparse.ArgumentParser(description='DanmakuRender 配置任务管理')
+    parser.add_argument('--version', action='store_true', help='查看当前版本')
+    parser.add_argument('--skip_update', action='store_true', help='跳过版本检查')
+
+    args = parser.parse_args()
+
+    if args.version:
+        print(f"当前版本: {CURRENT_VERSION}")
+        # 检查是否有新版本可用
+        try:
+            response = requests.get(f"{GITHUB_REPO}/releases/latest")
+            latest_version = response.json().get('tag_name', '')
+            if latest_version != CURRENT_VERSION:
+                print(f"有新版本可用: {latest_version}")
+                print("更新日志:")
+                release_notes = response.json().get('body', '暂无更新日志')
+                print(release_notes)
+        except requests.RequestException as e:
+            print(f"版本检查失败: {e}")
+    elif args.skip_update:
+        print("跳过版本检查")
     
-    # 初始化必要组件
+    # 启动 Flask 应用 (开发环境)
+    backup_db()
     os.makedirs(CONFIG_DIR, exist_ok=True)
     os.makedirs(DISABLED_DIR, exist_ok=True)
     
-    # 初始化数据库（保留现有数据）
     init_db()
-    
-    # 启动应用
-    app.run(host='0.0.0.0', port=5000)
+
+    # 启动 Flask 应用（使用 Flask 开发服务器）
+    app.run(host='0.0.0.0', port=5000, debug=True)
