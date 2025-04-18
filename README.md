@@ -10,10 +10,10 @@
 ## Windows安装（Linux安装懒得写） 
 
 1. 安装Python            
-[点击这里下载Python 3.9安装包](https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe)，需要下载其他版本的可以前往[官网](https://www.python.org/downloads/)自行下载。下载完成后点击安装，安装时注意选择`Add Python xxx to PATH`这个选项，其他默认就可以。  （不过一般安装了DanmakuRender5应该不需要安装）   
+[点击这里下载Python 3.9安装包](https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe)，需要下载其他版本的可以前往[官网](https://www.python.org/downloads/)自行下载。下载完成后点击安装，安装时注意选择`Add Python xxx to PATH`这个选项，其他默认就可以。  （不过一般安装了DanmakuRender5应该不需要再次安装）   
 
-2. 下载DMR主程序    
-[点击这里下载](https://github.com/jiabenguiyin/DanmakuRender_Configuration_Task_Management/releases/latest)，选择下面的`Source code.zip`，下载完成之后解压把里面的所有内容全部丢进`DanmakuRender`文件夹里。
+2. 下载DMRCTM主程序    
+[点击这里下载](https://github.com/jiabenguiyin/DanmakuRender_Configuration_Task_Management/releases/latest)，选择下面的`DanmakuRender_Configuration_Task_Management.zip`，下载完成之后解压把里面的所有内容全部丢进`DanmakuRender`文件夹里。
 
 3. 安装flask     
 安装flask需要用pip命令安装：
@@ -27,7 +27,7 @@ pip install flask
 python app.py
 ```
 
-5. 创建表单
+5. 创建表单（可选）
 在启动`app.py`会自动创建好表单，如果失效的话请在`DanmakuRender`文件夹里启动cmd，并输入以下命令创建表单，该表单是管理定时配置文件：
 ```shell
 python create_db.py
