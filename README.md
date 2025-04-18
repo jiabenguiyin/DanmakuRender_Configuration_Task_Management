@@ -38,10 +38,15 @@ python create_db.py
 ```shell
 127.0.0.1:5000
 ```
-7. 恢复备份数据库    
+7. 恢复备份数据库
 如果出现数据库丢失的情况下，可以通过这个指令进行恢复备份数据。
 ```shell
-cp ConfigSchedulerWeb.db.backup.20231020153045 ConfigSchedulerWeb.db
+copy ..\backups\ConfigSchedulerWeb.db.backup.20250418043206 ..\ConfigSchedulerWeb.db
+```
+8. 查询版本    
+输入该指令即可查询版本号 
+```shell
+python app.py --version
 ```
 
 ## 更多
