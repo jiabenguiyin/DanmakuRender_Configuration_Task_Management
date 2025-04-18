@@ -6,6 +6,8 @@
     
 初衷是DanmakuRender5管理配置文件太麻烦，所以我为了方便自己使用，写了这个小工具，配合DanmakuRender5使用。效果很棒！
 
+其他新功能有需求就开发吧，新建模板目前是固定的录制无弹幕2小时后自动上传b站的。想要diy功能请查看[**danmakurender-5使用文档**](https://github.com/SmallPeaches/DanmakuRender/edit/v5/README.md) 
+
 ### 安装与使用说明      
 ## Windows安装（Linux安装懒得写） 
 
@@ -41,7 +43,6 @@ python create_db.py
 ```shell
 cp ConfigSchedulerWeb.db.backup.20231020153045 ConfigSchedulerWeb.db
 ```
-重新启动
 
 ## 更多
 感谢 SmallPeaches/DanmakuRender 的工作付出。            
