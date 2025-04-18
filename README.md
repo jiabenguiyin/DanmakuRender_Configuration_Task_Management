@@ -15,29 +15,29 @@
 2. 下载DMRCTM主程序    
 [点击这里下载](https://github.com/jiabenguiyin/DanmakuRender_Configuration_Task_Management/releases/latest)，选择下面的`DanmakuRender_Configuration_Task_Management.zip`，下载完成之后解压把里面的所有内容全部丢进`DanmakuRender`文件夹里。
 
-3. 安装flask
+3. 安装flask    
 安装flask需要用pip命令安装：
 ```pip
 pip install flask
 ```
 
-4. 启动程序
+4. 启动程序    
 在`DanmakuRender`文件夹里启动cmd，并输入以下命令启动直播配置任务管理程序：
 ```shell
 python app.py
 ```
-5. 创建表单（可选）
+5. 创建表单（可选）    
 在启动`app.py`会自动创建好表单，如果失效的话请在`DanmakuRender`文件夹里启动cmd，并输入以下命令创建表单，该表单是管理定时配置文件：
 ```shell
 python create_db.py
 ```
-6. 浏览器gui管理界面
+6. 浏览器gui管理界面    
 启动`app.py`后在浏览器输入`127.0.0.1:5000`即可进入管理界面。
 ```shell
 127.0.0.1:5000
 ```
-7. 恢复备份数据库
-如果出现数据库丢失的情况下，可以通过这个指令进行恢复备份数据
+7. 恢复备份数据库    
+如果出现数据库丢失的情况下，可以通过这个指令进行恢复备份数据。
 ```shell
 cp ConfigSchedulerWeb.db.backup.20231020153045 ConfigSchedulerWeb.db
 ```
