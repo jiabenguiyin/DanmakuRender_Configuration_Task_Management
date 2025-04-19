@@ -17,11 +17,10 @@
 2. 下载DMRCTM主程序    
 [点击这里下载](https://github.com/jiabenguiyin/DanmakuRender_Configuration_Task_Management/releases/latest)，选择下面的`DanmakuRender_Configuration_Task_Management.zip`，下载完成之后解压把里面的所有内容全部丢进`DanmakuRender`文件夹里。
 
-3. 安装flask降级werkzeug1.0.1（懒得升）   
+3. 安装flask和werkzeug（只能用这个版本因为我懒得升）   
 安装flask降级werkzeug需要用pip命令安装：
 ```pip
-pip install flask
-pip uninstall werkzeug
+pip install flask==1.1.2
 pip install werkzeug==1.0.1
 ```
 
