@@ -11,8 +11,7 @@
 ### 安装与使用说明      
 ## Windows安装（Linux安装懒得写） 
 - 懒人一键启动 （后面的内容就可以忽略了）   
-[点击这里下载](https://github.com/jiabenguiyin/DanmakuRender_Configuration_Task_Management/releases/latest)，选择下面的`DanmakuRender_Configuration_Task_Management.exe`，下载完成之后放在`DanmakuRender`文件夹即可双击启动。    
-然后启动`app.py`后在浏览器输入`127.0.0.1:5000`即可进入管理界面。
+[点击这里下载](https://github.com/jiabenguiyin/DanmakuRender_Configuration_Task_Management/releases/latest)，选择下面的`DanmakuRender_Configuration_Task_Management.exe`，下载完成之后放在`DanmakuRender`文件夹即可双击启动。启动后在浏览器输入`127.0.0.1:5000`即可进入管理界面。
 ```shell
 127.0.0.1:5000
 ```
