@@ -10,6 +10,12 @@
 
 ### 安装与使用说明      
 ## Windows安装（Linux安装懒得写） 
+0.懒人一键启动 （后面的内容就可以忽略了）   
+[点击这里下载](https://github.com/jiabenguiyin/DanmakuRender_Configuration_Task_Management/releases/latest)，选择下面的`DanmakuRender_Configuration_Task_Management.exe`，下载完成之后放在`DanmakuRender`文件夹即可双击启动。    
+然后启动`app.py`后在浏览器输入`127.0.0.1:5000`即可进入管理界面。
+```shell
+127.0.0.1:5000
+```
 
 1. 安装Python            
 [点击这里下载Python 3.9安装包](https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe)，需要下载其他版本的可以前往[官网](https://www.python.org/downloads/)自行下载。下载完成后点击安装，安装时注意选择`Add Python xxx to PATH`这个选项，其他默认就可以。  （不过一般安装了DanmakuRender5应该不需要再次安装）   
